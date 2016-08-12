@@ -2396,7 +2396,7 @@ lev_edit_distance_sod(size_t len, const lev_byte *string,
 _LEV_STATIC_PY size_t
 lev_u_subst_value(const lev_wchar char1, const lev_wchar char2)
 {
-  printf("%d %d", int(char1), int(char2));
+  printf("%d %d", (int)char1, (int)char2);
   return 1;
 }
 
