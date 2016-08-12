@@ -2387,6 +2387,20 @@ lev_edit_distance_sod(size_t len, const lev_byte *string,
 }
 
 /**
+ * lev_u_subst_value:
+ *
+ * Computes Levenshtein substitution value of two Unicode characters.
+ *
+ * Returns: The substitution value.
+ **/
+_LEV_STATIC_PY size_t
+lev_u_subst_value(const lev_wchar char1, const lev_wchar char2)
+{
+  printf("%d %d", int(char1), int(char2));
+  return 1;
+}
+
+/**
  * lev_u_edit_distance:
  * @len1: The length of @string1.
  * @string1: A sequence of Unicode characters of length @len1, may contain NUL
@@ -2502,7 +2516,8 @@ lev_u_edit_distance(size_t len1, const lev_wchar *string1,
 
         char2p = string2 + offset;
         p = row + offset;
-        c3 = *(p++) + (char1 != *(char2p++));
+	lev_u_subst_value(char1, *char2p);
+	c3 = *(p++) + (char1 != *(char2p++));
         x = *p;
         x++;
         D = x;
@@ -2520,6 +2535,7 @@ lev_u_edit_distance(size_t len1, const lev_wchar *string1,
         end = row + len2 + i - half - 2;
       /* main */
       while (p <= end) {
+	lev_u_subst_value(char1, *char2p);
         size_t c3 = --D + (char1 != *(char2p++));
         x++;
         if (x > c3)
@@ -2532,6 +2548,7 @@ lev_u_edit_distance(size_t len1, const lev_wchar *string1,
       }
       /* lower triangle sentinel */
       if (i <= half) {
+	lev_u_subst_value(char1, *char2p);
         size_t c3 = --D + (char1 != *char2p);
         x++;
         if (x > c3)

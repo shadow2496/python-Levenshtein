@@ -4,7 +4,7 @@ import sys
 
 from distutils.core import Extension
 
-version = '0.12.0'
+version = '0.12.1'
 
 extLevensthein = Extension('Levenshtein._levenshtein',
                            sources = ['Levenshtein/_levenshtein.c'],
@@ -29,9 +29,9 @@ setup(name='python-Levenshtein',
         "Programming Language :: Python :: Implementation :: CPython"
         ],
       keywords='string Levenshtein comparison edit-distance',
-      author='Antti Haapala',
-      author_email='antti@haapala.name',
-      url='http://github.com/ztane/python-Levenshtein',
+      author='Choi Seung-hwan',
+      author_email='dadadak4@gmail.com',
+      url='http://github.com/shadow2496/python-Levenshtein',
       license='GPL',
       packages=['Levenshtein'],
       namespace_packages=[],
