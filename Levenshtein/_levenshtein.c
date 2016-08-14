@@ -2515,8 +2515,8 @@ lev_u_edit_distance(size_t len1, const lev_wchar *string1,
                     int xcost)
 {
   size_t i;
-  size_t *row;  /* we only need to keep one row of costs */
-  size_t *end;
+  double *row;  /* we only need to keep one row of costs */
+  double *end;
   size_t half;
   double num;
 
@@ -2576,7 +2576,7 @@ lev_u_edit_distance(size_t len1, const lev_wchar *string1,
    * fast.  */
   if (xcost) {
     for (i = 1; i < len1; i++) {
-      size_t *p = row + 1;
+      double *p = row + 1;
       const lev_wchar char1 = string1[i - 1];
       const lev_wchar *char2p = string2;
       double D = (double)(i - 1);
@@ -2601,7 +2601,7 @@ lev_u_edit_distance(size_t len1, const lev_wchar *string1,
      * necessary */
     row[0] = (double)(len1 - half - 1);
     for (i = 1; i < len1; i++) {
-      size_t *p;
+      double *p;
       const lev_wchar char1 = string1[i - 1];
       const lev_wchar *char2p;
       double D, x;
