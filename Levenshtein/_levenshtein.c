@@ -2594,7 +2594,7 @@ lev_u_edit_distance(size_t len1, const lev_wchar *string1,
     }
   }
   else {
-    lev_reset_subst_matrix();
+    lev_reset_subst_matrix(void);
     /* in this case we don't have to scan two corner triangles (of size len1/2)
      * in the matrix because no best path can go throught them. note this
      * breaks when len1 == len2 == 2 so the memchr() special case above is
