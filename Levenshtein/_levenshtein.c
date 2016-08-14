@@ -2386,8 +2386,97 @@ lev_edit_distance_sod(size_t len, const lev_byte *string,
   return sum;
 }
 
+double subst_matrix[51][51];
+/**
+ * lev_reset_subst_matrix:
+ *
+ * Resets subst_matrix.
+ *
+ * Returns: Nothing.
+ **/
+_LEV_STATIC_PY void
+lev_reset_subst_matrix()
+{
+  size_t i, j;
+  for (i = 0; i < 51; i++) {
+    for (j = 0; j < 51; j++) {
+      if (i == j) continue;
+      subst_matrix[i][j] = 1.0;
+    }
+  }
+
+  subst_matrix[0][1] = 0.7;   subst_matrix[1][0] = 0.7;
+  subst_matrix[0][20] = 0.6;  subst_matrix[20][0] = 0.6;
+  subst_matrix[0][23] = 0.7;  subst_matrix[23][0] = 0.7;
+  subst_matrix[0][26] = 0.6;  subst_matrix[26][0] = 0.6;
+  subst_matrix[1][2] = 0.7;   subst_matrix[2][1] = 0.7;
+  subst_matrix[1][28] = 0.6;  subst_matrix[28][1] = 0.6;
+  subst_matrix[2][21] = 0.6;  subst_matrix[21][2] = 0.6;
+  subst_matrix[2][23] = 0.8;  subst_matrix[23][2] = 0.8;
+  subst_matrix[3][6] = 0.6;   subst_matrix[6][3] = 0.6;
+  subst_matrix[6][8] = 0.8;   subst_matrix[8][6] = 0.8;
+  subst_matrix[6][16] = 0.6;  subst_matrix[16][6] = 0.6;
+  subst_matrix[6][27] = 0.6;  subst_matrix[27][6] = 0.6;
+  subst_matrix[7][28] = 0.3;  subst_matrix[28][7] = 0.3;
+  subst_matrix[8][27] = 0.6;  subst_matrix[27][8] = 0.6;
+  subst_matrix[9][10] = 0.8;  subst_matrix[10][9] = 0.8;
+  subst_matrix[10][11] = 0.4; subst_matrix[11][10] = 0.4;
+  subst_matrix[10][14] = 0.4; subst_matrix[14][10] = 0.4;
+  subst_matrix[11][14] = 0.8; subst_matrix[14][11] = 0.8;
+  subst_matrix[12][19] = 0.8; subst_matrix[19][12] = 0.8;
+  subst_matrix[13][14] = 0.8; subst_matrix[14][13] = 0.8;
+  subst_matrix[14][15] = 0.8; subst_matrix[15][14] = 0.8;
+  subst_matrix[16][17] = 0.5; subst_matrix[17][16] = 0.5;
+  subst_matrix[16][22] = 0.6; subst_matrix[22][16] = 0.6;
+  subst_matrix[16][28] = 0.5; subst_matrix[28][16] = 0.5;
+  subst_matrix[17][28] = 0.8; subst_matrix[28][17] = 0.8;
+  subst_matrix[20][23] = 0.6; subst_matrix[23][20] = 0.6;
+  subst_matrix[21][24] = 0.6; subst_matrix[24][21] = 0.6;
+  subst_matrix[22][29] = 0.8; subst_matrix[29][22] = 0.8;
+  subst_matrix[23][25] = 0.4; subst_matrix[25][23] = 0.4;
+  subst_matrix[25][26] = 0.8; subst_matrix[26][25] = 0.8;
+  subst_matrix[25][29] = 0.5; subst_matrix[29][25] = 0.5;
+
+  subst_matrix[30][31] = 0.8; subst_matrix[31][30] = 0.8;
+  subst_matrix[30][32] = 0.4; subst_matrix[32][30] = 0.4;
+  subst_matrix[30][34] = 0.6; subst_matrix[34][30] = 0.6;
+  subst_matrix[30][50] = 0.4; subst_matrix[50][30] = 0.4;
+  subst_matrix[31][33] = 0.3; subst_matrix[33][31] = 0.3;
+  subst_matrix[31][34] = 0.8; subst_matrix[34][31] = 0.8;
+  subst_matrix[31][35] = 0.6; subst_matrix[35][31] = 0.6;
+  subst_matrix[31][50] = 0.7; subst_matrix[50][31] = 0.7;
+  subst_matrix[32][33] = 0.8; subst_matrix[33][32] = 0.8;
+  subst_matrix[32][50] = 0.8; subst_matrix[50][32] = 0.8;
+  subst_matrix[33][36] = 0.8; subst_matrix[36][33] = 0.8;
+  subst_matrix[33][50] = 0.8; subst_matrix[50][33] = 0.8;
+  subst_matrix[34][35] = 0.6; subst_matrix[35][34] = 0.6;
+  subst_matrix[34][36] = 0.4; subst_matrix[36][34] = 0.4;
+  subst_matrix[34][49] = 0.6; subst_matrix[49][34] = 0.6;
+  subst_matrix[34][50] = 0.4; subst_matrix[50][34] = 0.4;
+  subst_matrix[35][37] = 0.4; subst_matrix[37][35] = 0.4;
+  subst_matrix[36][37] = 0.6; subst_matrix[37][36] = 0.6;
+  subst_matrix[36][50] = 0.8; subst_matrix[50][36] = 0.8;
+  subst_matrix[38][42] = 0.4; subst_matrix[42][38] = 0.4;
+  subst_matrix[38][43] = 0.6; subst_matrix[43][38] = 0.6;
+  subst_matrix[38][48] = 0.4; subst_matrix[48][38] = 0.4;
+  subst_matrix[39][40] = 0.8; subst_matrix[40][39] = 0.8;
+  subst_matrix[39][41] = 0.4; subst_matrix[41][39] = 0.4;
+  subst_matrix[40][41] = 0.7; subst_matrix[41][40] = 0.7;
+  subst_matrix[41][49] = 0.6; subst_matrix[49][41] = 0.6;
+  subst_matrix[42][48] = 0.8; subst_matrix[48][42] = 0.8;
+  subst_matrix[43][47] = 0.4; subst_matrix[47][43] = 0.4;
+  subst_matrix[43][48] = 0.4; subst_matrix[48][43] = 0.4;
+  subst_matrix[44][45] = 0.8; subst_matrix[45][44] = 0.8;
+  subst_matrix[44][46] = 0.4; subst_matrix[46][44] = 0.4;
+  subst_matrix[45][46] = 0.8; subst_matrix[46][45] = 0.8;
+  subst_matrix[46][49] = 0.6; subst_matrix[49][46] = 0.6;
+  subst_matrix[47][48] = 0.8; subst_matrix[48][47] = 0.8;
+}
+
 /**
  * lev_u_subst_value:
+ * @char1: A Unicode character.
+ * @char2: A Unicode character.
  *
  * Computes Levenshtein substitution value of two Unicode characters.
  *
@@ -2396,8 +2485,13 @@ lev_edit_distance_sod(size_t len, const lev_byte *string,
 _LEV_STATIC_PY size_t
 lev_u_subst_value(const lev_wchar char1, const lev_wchar char2)
 {
-  printf("char1 = %c(%d), char2 = %c(%d)\n", char1, (int)char1, char2, (int)char2);
-  return 1;
+  size_t a, b;
+  a = (int)char1;
+  b = (int)char2;
+  if (a < 12593 || a > 12643 || b < 12593 || b > 12643)
+    return a != b;
+  else
+    return subst_matrix[a - 12593][b - 12593];
 }
 
 /**
@@ -2415,7 +2509,7 @@ lev_u_subst_value(const lev_wchar char1, const lev_wchar char2)
  *
  * Returns: The edit distance.
  **/
-_LEV_STATIC_PY size_t
+_LEV_STATIC_PY double
 lev_u_edit_distance(size_t len1, const lev_wchar *string1,
                     size_t len2, const lev_wchar *string2,
                     int xcost)
@@ -2424,6 +2518,7 @@ lev_u_edit_distance(size_t len1, const lev_wchar *string1,
   size_t *row;  /* we only need to keep one row of costs */
   size_t *end;
   size_t half;
+  double num;
 
   /* strip common prefix */
   while (len1 > 0 && len2 > 0 && *string1 == *string2) {
@@ -2441,9 +2536,9 @@ lev_u_edit_distance(size_t len1, const lev_wchar *string1,
 
   /* catch trivial cases */
   if (len1 == 0)
-    return len2;
+    return (double)len2;
   if (len2 == 0)
-    return len1;
+    return (double)len1;
 
   /* make the inner cycle (i.e. string2) the longer one */
   if (len1 > len2) {
@@ -2460,18 +2555,18 @@ lev_u_edit_distance(size_t len1, const lev_wchar *string1,
     const lev_wchar *p = string2;
     for (i = len2; i; i--) {
       if (*(p++) == z)
-        return len2 - 1;
+        return (double)(len2 - 1);
     }
-    return len2 + (xcost != 0);
+    return (double)(len2 + (xcost != 0));
   }
   len1++;
   len2++;
   half = len1 >> 1;
 
   /* initalize first row */
-  row = (size_t*)malloc(len2*sizeof(size_t));
+  row = (double*)malloc(len2*sizeof(double));
   if (!row)
-    return (size_t)(-1);
+    return (double)(-1);
   end = row + len2 - 1;
   for (i = 0; i < len2 - (xcost ? 0 : half); i++)
     row[i] = i;
@@ -2484,42 +2579,42 @@ lev_u_edit_distance(size_t len1, const lev_wchar *string1,
       size_t *p = row + 1;
       const lev_wchar char1 = string1[i - 1];
       const lev_wchar *char2p = string2;
-      size_t D = i - 1;
-      size_t x = i;
+      double D = (double)(i - 1);
+      double x = (double)i;
       while (p <= end) {
         if (char1 == *(char2p++))
           x = D;
         else
-          x++;
+          x += 1.0;
         D = *p;
-        if (x > D + 1)
-          x = D + 1;
+        if (x > D + 1.0)
+          x = D + 1.0;
         *(p++) = x;
       }
     }
   }
   else {
+    lev_reset_subst_matrix();
     /* in this case we don't have to scan two corner triangles (of size len1/2)
      * in the matrix because no best path can go throught them. note this
      * breaks when len1 == len2 == 2 so the memchr() special case above is
      * necessary */
-    row[0] = len1 - half - 1;
+    row[0] = (double)(len1 - half - 1);
     for (i = 1; i < len1; i++) {
       size_t *p;
       const lev_wchar char1 = string1[i - 1];
       const lev_wchar *char2p;
-      size_t D, x;
+      double D, x;
       /* skip the upper triangle */
       if (i >= len1 - half) {
         size_t offset = i - (len1 - half);
-        size_t c3;
+        double c3;
 
         char2p = string2 + offset;
         p = row + offset;
-	lev_u_subst_value(char1, *char2p);
-	c3 = *(p++) + (char1 != *(char2p++));
+	c3 = *(p++) + lev_u_subst_value(char1, *(char2p++));
         x = *p;
-        x++;
+        x += 1.0;
         D = x;
         if (x > c3)
           x = c3;
@@ -2528,20 +2623,19 @@ lev_u_edit_distance(size_t len1, const lev_wchar *string1,
       else {
         p = row + 1;
         char2p = string2;
-        D = x = i;
+        D = x = (double)i;
       }
       /* skip the lower triangle */
       if (i <= half + 1)
         end = row + len2 + i - half - 2;
       /* main */
       while (p <= end) {
-	lev_u_subst_value(char1, *char2p);
-        size_t c3 = --D + (char1 != *(char2p++));
-        x++;
+        double c3 = (D - 1.0) + lev_u_subst_value(char1, *(char2p++));
+        x += 1.0;
         if (x > c3)
           x = c3;
         D = *p;
-        D++;
+        D += 1.0;
         if (x > D)
           x = D;
         *(p++) = x;
@@ -2549,8 +2643,8 @@ lev_u_edit_distance(size_t len1, const lev_wchar *string1,
       /* lower triangle sentinel */
       if (i <= half) {
 	lev_u_subst_value(char1, *char2p);
-        size_t c3 = --D + (char1 != *char2p);
-        x++;
+        double c3 = (D - 1.0) + lev_u_subst_value(char1, *char2p);
+        x += 1.0;
         if (x > c3)
           x = c3;
         *p = x;
@@ -2558,9 +2652,9 @@ lev_u_edit_distance(size_t len1, const lev_wchar *string1,
     }
   }
 
-  i = *end;
+  num = *end;
   free(row);
-  return i;
+  return num;
 }
 
 _LEV_STATIC_PY double
