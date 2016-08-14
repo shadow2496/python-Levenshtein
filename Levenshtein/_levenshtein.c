@@ -649,7 +649,7 @@ typedef struct {
   SetSeqFuncUnicode u;
 } SetSeqFuncs;
 
-static long int
+static double
 levenshtein_common(PyObject *args,
                    const char *name,
                    size_t xcost,
@@ -691,7 +691,7 @@ setseq_common(PyObject *args,
  ****************************************************************************/
 /* {{{ */
 
-static long int
+static double
 levenshtein_common(PyObject *args, const char *name, size_t xcost,
                    size_t *lensum)
 {
@@ -714,9 +714,9 @@ levenshtein_common(PyObject *args, const char *name, size_t xcost,
       size_t d = lev_edit_distance(len1, string1, len2, string2, xcost);
       if (d == (size_t)(-1)) {
         PyErr_NoMemory();
-        return -1;
+        return -1.0;
       }
-      return d;
+      return (double)d;
     }
   }
   else if (PyObject_TypeCheck(arg1, &PyUnicode_Type)
@@ -729,10 +729,10 @@ levenshtein_common(PyObject *args, const char *name, size_t xcost,
     string1 = PyUnicode_AS_UNICODE(arg1);
     string2 = PyUnicode_AS_UNICODE(arg2);
     {
-      size_t d = lev_u_edit_distance(len1, string1, len2, string2, xcost);
-      if (d == (size_t)(-1)) {
+      double d = lev_u_edit_distance(len1, string1, len2, string2, xcost);
+      if (d == -1.0) {
         PyErr_NoMemory();
-        return -1;
+        return -1.0;
       }
       return d;
     }
@@ -740,7 +740,7 @@ levenshtein_common(PyObject *args, const char *name, size_t xcost,
   else {
     PyErr_Format(PyExc_TypeError,
                  "%s expected two Strings or two Unicodes", name);
-    return -1;
+    return -1.0;
   }
 }
 
@@ -748,21 +748,21 @@ static PyObject*
 distance_py(PyObject *self, PyObject *args)
 {
   size_t lensum;
-  long int ldist;
+  double ldist;
 
-  if ((ldist = levenshtein_common(args, "distance", 0, &lensum)) < 0)
+  if ((ldist = levenshtein_common(args, "distance", 0, &lensum)) < 0.0)
     return NULL;
 
-  return PyInt_FromLong((long)ldist);
+  return PyFloat_FromDouble(ldist);
 }
 
 static PyObject*
 ratio_py(PyObject *self, PyObject *args)
 {
   size_t lensum;
-  long int ldist;
+  double ldist;
 
-  if ((ldist = levenshtein_common(args, "ratio", 1, &lensum)) < 0)
+  if ((ldist = levenshtein_common(args, "ratio", 1, &lensum)) < 0.0)
     return NULL;
 
   if (lensum == 0)
@@ -2395,7 +2395,7 @@ double subst_matrix[51][51];
  * Returns: Nothing.
  **/
 _LEV_STATIC_PY void
-lev_reset_subst_matrix()
+lev_reset_subst_matrix(void)
 {
   size_t i, j;
   for (i = 0; i < 51; i++) {
@@ -2594,7 +2594,7 @@ lev_u_edit_distance(size_t len1, const lev_wchar *string1,
     }
   }
   else {
-    lev_reset_subst_matrix(void);
+    lev_reset_subst_matrix();
     /* in this case we don't have to scan two corner triangles (of size len1/2)
      * in the matrix because no best path can go throught them. note this
      * breaks when len1 == len2 == 2 so the memchr() special case above is
@@ -2664,12 +2664,13 @@ lev_u_edit_distance_sod(size_t len, const lev_wchar *string,
                         const double *weights,
                         int xcost)
 {
-  size_t i, d;
+  size_t i;
+  double d;
   double sum = 0.0;
 
   for (i = 0; i < n; i++) {
     d = lev_u_edit_distance(len, string, lengths[i], strings[i], xcost);
-    if (d == (size_t)-1)
+    if (d == -1.0)
       return -1.0;
     sum += weights[i]*d;
   }
@@ -4682,13 +4683,13 @@ lev_u_set_median_index(size_t n, const size_t *lengths,
   size_t minidx = 0;
   double mindist = LEV_INFINITY;
   size_t i;
-  long int *distances;
+  double *distances;
 
-  distances = (long int*)malloc((n*(n - 1)/2)*sizeof(long int));
+  distances = (double*)malloc((n*(n - 1)/2)*sizeof(double));
   if (!distances)
     return (size_t)-1;
 
-  memset(distances, 0xff, (n*(n - 1)/2)*sizeof(long int)); /* XXX */
+  memset(distances, 0xff, (n*(n - 1)/2)*sizeof(double)); /* XXX */
   for (i = 0; i < n; i++) {
     size_t j = 0;
     double dist = 0.0;
@@ -4697,12 +4698,12 @@ lev_u_set_median_index(size_t n, const size_t *lengths,
     /* below diagonal */
     while (j < i && dist < mindist) {
       size_t dindex = (i - 1)*(i - 2)/2 + j;
-      long int d;
-      if (distances[dindex] >= 0)
+      double d;
+      if (distances[dindex] >= 0.0)
         d = distances[dindex];
       else {
         d = lev_u_edit_distance(lengths[j], strings[j], leni, stri, 0);
-        if (d < 0) {
+        if (d < 0.0) {
           free(distances);
           return (size_t)-1;
         }
@@ -4716,7 +4717,7 @@ lev_u_set_median_index(size_t n, const size_t *lengths,
       size_t dindex = (j - 1)*(j - 2)/2 + i;
       distances[dindex] = lev_u_edit_distance(lengths[j], strings[j],
                                               leni, stri, 0);
-      if (distances[dindex] < 0) {
+      if (distances[dindex] < 0.0) {
         free(distances);
         return (size_t)-1;
       }
@@ -5030,8 +5031,8 @@ lev_u_edit_seq_distance(size_t n1, const size_t *lengths1,
       if (l == 0)
         q = D;
       else {
-        size_t d = lev_u_edit_distance(len1, str1, *(len2p++), *(str2p++), 1);
-        if (d == (size_t)(-1)) {
+        double d = lev_u_edit_distance(len1, str1, *(len2p++), *(str2p++), 1);
+        if (d == -1.0) {
           free(row);
           return -1.0;
         }
@@ -5218,12 +5219,12 @@ lev_u_set_distance(size_t n1, const size_t *lengths1,
       if (l == 0)
         *(r++) = 0.0;
       else {
-        size_t d = lev_u_edit_distance(len2, str2, *(len1p++), *(str1p)++, 1);
-        if (d == (size_t)(-1)) {
+        double d = lev_u_edit_distance(len2, str2, *(len1p++), *(str1p)++, 1);
+        if (d == -1.0) {
           free(r);
           return -1.0;
         }
-        *(r++) = (double)d/l;
+        *(r++) = d/l;
       }
     }
   }
@@ -5240,13 +5241,13 @@ lev_u_set_distance(size_t n1, const size_t *lengths1,
     i = map[j];
     l = lengths1[j] + lengths2[i];
     if (l > 0) {
-      size_t d = lev_u_edit_distance(lengths1[j], strings1[j],
+      double d = lev_u_edit_distance(lengths1[j], strings1[j],
                                      lengths2[i], strings2[i], 1);
-      if (d == (size_t)(-1)) {
+      if (d == -1.0) {
         free(map);
         return -1.0;
       }
-      sum += 2.0*d/l;
+      sum += 2*d/l;
     }
   }
   free(map);
