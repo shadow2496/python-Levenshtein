@@ -2482,14 +2482,14 @@ lev_reset_subst_matrix(void)
  *
  * Returns: The substitution value.
  **/
-_LEV_STATIC_PY size_t
+_LEV_STATIC_PY double
 lev_u_subst_value(const lev_wchar char1, const lev_wchar char2)
 {
   size_t a, b;
   a = (int)char1;
   b = (int)char2;
   if (a < 12593 || a > 12643 || b < 12593 || b > 12643)
-    return a != b;
+    return (double)(a != b);
   else
     return subst_matrix[a - 12593][b - 12593];
 }
@@ -2551,13 +2551,16 @@ lev_u_edit_distance(size_t len1, const lev_wchar *string1,
   }
   /* check len1 == 1 separately */
   if (len1 == 1) {
+    double x;
+    double min = 1.0;
     lev_wchar z = *string1;
     const lev_wchar *p = string2;
     for (i = len2; i; i--) {
-      if (*(p++) == z)
-        return (double)(len2 - 1);
+      x = lev_u_subst_value(z, *(p++));
+      if (min <= x) continue;
+      min = x;
     }
-    return (double)(len2 + (xcost != 0));
+    return (double)(len2 - 1 + (xcost != 0)) + x;
   }
   len1++;
   len2++;
