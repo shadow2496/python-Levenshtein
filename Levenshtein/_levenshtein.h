@@ -95,7 +95,7 @@ lev_edit_distance(size_t len1,
                   int xcost);
 
 _LEV_STATIC_PY
-size_t
+double
 lev_u_edit_distance(size_t len1,
                     const lev_wchar *string1,
                     size_t len2,
